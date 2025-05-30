@@ -231,11 +231,11 @@ impl Connection {
     pub async fn open_with_flags_and_vfs<P: AsRef<Path>>(
         path: P,
         flags: OpenFlags,
-        vfs: &str,
+        vfs: impl Name,
     ) -> Result<Self> {
         let path = path.as_ref().to_owned();
-        let vfs = vfs.to_owned();
-        start(move || rusqlite::Connection::open_with_flags_and_vfs(path, flags, &vfs))
+        let vfs = vfs.as_cstr()?.to_owned();
+        start(move || rusqlite::Connection::open_with_flags_and_vfs(path, flags, &*vfs))
             .await
             .map_err(Error::Rusqlite)
     }
@@ -264,9 +264,9 @@ impl Connection {
     ///
     /// Will return `Err` if `vfs` cannot be converted to a C-compatible
     /// string or if the underlying SQLite open call fails.
-    pub async fn open_in_memory_with_flags_and_vfs(flags: OpenFlags, vfs: &str) -> Result<Self> {
-        let vfs = vfs.to_owned();
-        start(move || rusqlite::Connection::open_in_memory_with_flags_and_vfs(flags, &vfs))
+    pub async fn open_in_memory_with_flags_and_vfs(flags: OpenFlags, vfs: impl Name) -> Result<Self> {
+        let vfs = vfs.as_cstr()?.to_owned();
+        start(move || rusqlite::Connection::open_in_memory_with_flags_and_vfs(flags, &*vfs))
             .await
             .map_err(Error::Rusqlite)
     }
